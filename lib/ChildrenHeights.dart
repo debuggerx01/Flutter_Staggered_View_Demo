@@ -60,7 +60,7 @@ class ChildrenHeights {
   }
 
   int getMaxIndexForScrollOffset(double scrollOffset) {
-    return 0;
+    return 100;
   }
 
   /// 向容器中新增子布局，传入index以及对应的真实宽高
@@ -88,5 +88,13 @@ class ChildrenHeights {
       }
     }
     list[minRowIndex].add(new Height(index, minBottom, minBottom + showHeight));
+  }
+
+  double computeMaxScrollOffset(int childCount) {
+/*    if (list[0].isEmpty) return 0.0;
+    double avgHeight = list[0].last.bottom / (lastIndex + 1);
+    return childCount * avgHeight / list.length;*/
+
+    return childCount * viewportHeight;
   }
 }

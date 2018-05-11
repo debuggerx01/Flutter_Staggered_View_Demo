@@ -34,7 +34,11 @@ class MySliverGridLayout extends SliverGridLayout {
   @override
   SliverGridGeometry getGeometryForChildIndex(int index) {
     // TODO: implement getGeometryForChildIndex
-    return new SliverGridGeometry(crossAxisExtent: 0.0, crossAxisOffset: 0.0, mainAxisExtent: 0.0, scrollOffset: 0.0);
+    return new SliverGridGeometry(
+        crossAxisExtent: ch.itemWidth * ch.list.length,
+        crossAxisOffset: 0.0,
+        mainAxisExtent: ch.viewportHeight,
+        scrollOffset: ch.viewportHeight * index);
   }
 
   @override
@@ -52,6 +56,6 @@ class MySliverGridLayout extends SliverGridLayout {
   @override
   double computeMaxScrollOffset(int childCount) {
     // TODO: implement computeMaxScrollOffset
-    return 0.0;
+    return ch.computeMaxScrollOffset(childCount);
   }
 }

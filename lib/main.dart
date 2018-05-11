@@ -3,6 +3,7 @@ import 'dart:math' show Random, max, min;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_view/MySliverGridDelegate.dart';
+import 'package:flutter_staggered_view/rect_getter.dart';
 
 void main() => runApp(new MyApp());
 
@@ -45,13 +46,26 @@ class _MyHomePageState extends State<MyHomePage> {
         gridDelegate: new MySliverGridDelegate(rowCount: 2, screenWidth: size.width, viewportHeight: size.height),
         itemBuilder: (BuildContext context, int index) {
           print('build : $index');
-          return new SizedBox(
-            width: random.nextInt(100) + 30.0,
-            height: random.nextInt(100) + 30.0,
-            child: new Container(
-              color: Colors.primaries[index % Colors.primaries.length],
-              child: new Center(
-                child: new Text('$index'),
+          var rectGetter = new RectGetter.defaultKey(
+            child: new SizedBox(
+              width: random.nextInt(100) + 30.0,
+              height: random.nextInt(100) + 30.0,
+              child: new Container(
+                color: Colors.primaries[index % Colors.primaries.length],
+                child: new Center(
+                  child: new Text('$index'),
+                ),
+              ),
+            ),
+          );
+          return new Container(
+            color: Colors.primaries[Colors.primaries.length - (index % Colors.primaries.length) - 1],
+            child: new Center(
+              child: new GestureDetector(
+                onTap: () {
+                  print(rectGetter.getRect());
+                },
+                child: rectGetter,
               ),
             ),
           );
