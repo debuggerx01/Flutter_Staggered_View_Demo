@@ -1,8 +1,8 @@
-import 'dart:math' show Random;
+import 'dart:math' show Random, max, min;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter_staggered_view/MySliverGridDelegate.dart';
 
 void main() => runApp(new MyApp());
 
@@ -34,97 +34,34 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var screenWidth = MediaQuery.of(context).size.width;
+    var size = MediaQuery.of(context).size;
 
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
       body: new GridView.builder(
-          itemCount: data.length,
-          gridDelegate: new MySliverGridDelegate(rowCount: 2, screenWidth: screenWidth),
-          itemBuilder: (BuildContext context, int index) {
-            print('build : $index');
-            return new SizedBox(
-              width: random.nextInt(100) + 30.0,
-              height: random.nextInt(100) + 30.0,
-              child: new Container(
-                color: Colors.primaries[index % Colors.primaries.length],
-                child: new Center(
-                  child: new Text('$index'),
-                ),
+        itemCount: data.length,
+        gridDelegate: new MySliverGridDelegate(rowCount: 2, screenWidth: size.width, viewportHeight: size.height),
+        itemBuilder: (BuildContext context, int index) {
+          print('build : $index');
+          return new SizedBox(
+            width: random.nextInt(100) + 30.0,
+            height: random.nextInt(100) + 30.0,
+            child: new Container(
+              color: Colors.primaries[index % Colors.primaries.length],
+              child: new Center(
+                child: new Text('$index'),
               ),
-            );
-          }),
+            ),
+          );
+        },
+      ),
       floatingActionButton: new FloatingActionButton(
         onPressed: () {},
         tooltip: 'Increment',
         child: new Icon(Icons.add),
       ),
     );
-  }
-}
-
-class Height {
-  final double top;
-  final double bottom;
-
-  const Height(this.top, this.bottom);
-}
-
-class MySliverGridDelegate extends SliverGridDelegate {
-  List<List<Height>> _tempHeight;
-  double _itemWidth;
-  int rowCount;
-
-  double screenWidth;
-
-  MySliverGridDelegate({this.rowCount, this.screenWidth}) {
-    _tempHeight = new List(rowCount);
-    _itemWidth = screenWidth / rowCount;
-    for (var i = 0; i < rowCount; i++) {
-      _tempHeight.add(new List<Height>());
-    }
-  }
-
-  @override
-  SliverGridLayout getLayout(SliverConstraints constraints) {
-    return new MySliverGridLayout(_tempHeight);
-  }
-
-  @override
-  bool shouldRelayout(SliverGridDelegate oldDelegate) {
-    return oldDelegate != this;
-  }
-}
-
-@immutable
-class MySliverGridLayout extends SliverGridLayout {
-  final List<List<Height>> tempHeight;
-
-  MySliverGridLayout(this.tempHeight);
-
-  @override
-  double computeMaxScrollOffset(int childCount) {
-    // TODO: implement computeMaxScrollOffset
-    return 0.0;
-  }
-
-  @override
-  SliverGridGeometry getGeometryForChildIndex(int index) {
-    // TODO: implement getGeometryForChildIndex
-    return new SliverGridGeometry(crossAxisExtent: 0.0, crossAxisOffset: 0.0, mainAxisExtent: 0.0, scrollOffset: 0.0);
-  }
-
-  @override
-  int getMaxChildIndexForScrollOffset(double scrollOffset) {
-    // TODO: implement getMaxChildIndexForScrollOffset
-    return 0;
-  }
-
-  @override
-  int getMinChildIndexForScrollOffset(double scrollOffset) {
-    // TODO: implement getMinChildIndexForScrollOffset
-    return 0;
   }
 }
