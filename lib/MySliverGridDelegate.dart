@@ -9,9 +9,11 @@ class MySliverGridDelegate extends SliverGridDelegate {
 
   double screenWidth;
 
-  MySliverGridDelegate({@required this.rowCount, @required this.screenWidth, @required viewportHeight}) {
+  MySliverGridDelegate(
+      {@required this.rowCount, @required this.screenWidth, @required viewportHeight, @required itemCount}) {
     _itemWidth = screenWidth / rowCount;
-    childrenHeights = new ChildrenHeights(rowCount: rowCount, itemWidth: _itemWidth, viewportHeight: viewportHeight);
+    childrenHeights = new ChildrenHeights(
+        rowCount: rowCount, itemWidth: _itemWidth, viewportHeight: viewportHeight, itemCount: itemCount);
   }
 
   @override
@@ -34,11 +36,24 @@ class MySliverGridLayout extends SliverGridLayout {
   @override
   SliverGridGeometry getGeometryForChildIndex(int index) {
     // TODO: implement getGeometryForChildIndex
+
+    var chs = new ChildrenHeights();
+
+    ///该子布局第一次加载时，容器中无信息，此时直接返回全屏渲染以供计算
+    if (index > chs.lastIndex)
+      return new SliverGridGeometry(
+          crossAxisExtent: ch.itemWidth * ch.list.length,
+          crossAxisOffset: 0.0,
+          mainAxisExtent: ch.viewportHeight,
+          scrollOffset: ch.viewportHeight * index);
+
+    ///如果容器中已有信息，取出后生成指定的几何信息
+    var heightWithRowIndex = chs.getHeightByIndex(index);
     return new SliverGridGeometry(
-        crossAxisExtent: ch.itemWidth * ch.list.length,
-        crossAxisOffset: 0.0,
-        mainAxisExtent: ch.viewportHeight,
-        scrollOffset: ch.viewportHeight * index);
+        crossAxisExtent: ch.itemWidth,
+        crossAxisOffset: ch.itemWidth * heightWithRowIndex.rowIndex,
+        mainAxisExtent: heightWithRowIndex.height.mainAxisExtent,
+        scrollOffset: heightWithRowIndex.height.top);
   }
 
   @override

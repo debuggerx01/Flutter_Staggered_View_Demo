@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 ///需要实时获得某个Widget的Rect信息时使用该控件
@@ -21,7 +22,7 @@ class RectGetter extends StatefulWidget {
   }
 
   ///传GlobalKey构造，之后可以RectGetter.getRectFromKey(key)的方式获得Rect
-  RectGetter({this.key, this.child}) : super(key: key);
+  RectGetter({@required this.key, this.child}) : super(key: key);
 
   ///生成默认GlobalKey的命名无参构造，调用对象的getRect方法获得Rect
   factory RectGetter.defaultKey({Widget child}) {
