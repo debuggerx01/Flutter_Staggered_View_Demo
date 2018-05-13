@@ -3,8 +3,8 @@ import 'dart:math' show pi;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_view/ChildrenHeights.dart';
-import 'package:flutter_staggered_view/MySliverGridDelegate.dart';
+import 'package:flutter_staggered_view/children_heights.dart';
+import 'package:flutter_staggered_view/my_sliver_grid_delegate.dart';
 import 'package:flutter_staggered_view/rect_getter.dart';
 
 void main() {
@@ -41,6 +41,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
+
+    /// release模式下启动速度过快，可能导致取得的屏幕宽高为0
+    if (size.height == 0.0) {
+      new Future.delayed(Duration.zero, () {
+        setState(() {});
+      });
+      return new Container();
+    }
     var controller = new ScrollController();
     var delegate = new MySliverGridDelegate(
         rowCount: rowCount, screenWidth: size.width, viewportHeight: size.height, itemCount: data.length);
@@ -56,10 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
         itemBuilder: (BuildContext context, int index) {
           print('build : $index');
 
-          GlobalKey key = new GlobalKey();
-
-          var rectGetter = new RectGetter(
-            key: key,
+          var rectGetter = new RectGetter.defaultKey(
             child: new SizedBox(
               width: (pi * index * 10000) % 100 + 100.0,
               height: (pi * index * 1000000) % 100 + 150.0,
@@ -73,12 +78,11 @@ class _MyHomePageState extends State<MyHomePage> {
           );
 
           new Future.delayed(Duration.zero, () {
-            var rect = RectGetter.getRectFromKey(key);
+            var rect = rectGetter.getRect();
             new ChildrenHeights().addChild(index: index, width: rect.width, height: rect.height);
             controller.animateTo(controller.offset + (index.isOdd ? 1.0 : -1.0),
                 duration: const Duration(microseconds: 1), curve: Curves.linear);
           });
-
           return new FittedBox(
             fit: BoxFit.contain,
             child: rectGetter,

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_staggered_view/ChildrenHeights.dart';
+import 'package:flutter_staggered_view/children_heights.dart';
 
 class MySliverGridDelegate extends SliverGridDelegate {
   ChildrenHeights childrenHeights;
@@ -43,7 +43,7 @@ class MySliverGridLayout extends SliverGridLayout {
     if (index > chs.lastIndex)
       return new SliverGridGeometry(
           crossAxisExtent: ch.itemWidth * ch.list.length,
-          crossAxisOffset: 0.0,
+          crossAxisOffset: ch.itemWidth * ch.list.length,
           mainAxisExtent: ch.viewportHeight,
           scrollOffset: ch.viewportHeight * index);
 

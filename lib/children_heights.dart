@@ -12,6 +12,9 @@ class Height {
   const Height(this.index, this.top, this.bottom);
 
   get mainAxisExtent => bottom - top;
+
+  @override
+  String toString() => 'Height : [index : $index , top : $top , bottom : $bottom]';
 }
 
 @immutable

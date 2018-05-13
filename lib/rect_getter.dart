@@ -27,7 +27,7 @@ class RectGetter extends StatefulWidget {
   ///生成默认GlobalKey的命名无参构造，调用对象的getRect方法获得Rect
   factory RectGetter.defaultKey({Widget child}) {
     return new RectGetter(
-      key: new GlobalKey(),
+      key: new GlobalKey<_RectGetterState>(),
       child: child,
     );
   }
