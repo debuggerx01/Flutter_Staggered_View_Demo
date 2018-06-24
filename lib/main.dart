@@ -80,8 +80,10 @@ class _MyHomePageState extends State<MyHomePage> {
           new Future.delayed(Duration.zero, () {
             var rect = rectGetter.getRect();
             new ChildrenHeights().addChild(index: index, width: rect.width, height: rect.height);
-            controller.animateTo(controller.offset + (index.isOdd ? 1.0 : -1.0),
-                duration: const Duration(microseconds: 1), curve: Curves.linear);
+//            controller.animateTo(controller.offset + (index.isOdd ? 1.0 : -1.0),
+//                duration: const Duration(microseconds: 1), curve: Curves.linear);
+
+            if (ChildrenHeights().childCount != data.length) setState(() {});
           });
           return new FittedBox(
             fit: BoxFit.contain,

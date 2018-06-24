@@ -3,7 +3,11 @@
 
 .packages
 .pub/
+.idea/
 
 build/
 
 .flutter-plugins
+将删除 .idea/
+将删除 Flutter_Staggered_View.iml
+将删除 android/app/src/main/gen/
