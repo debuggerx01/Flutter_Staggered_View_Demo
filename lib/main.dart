@@ -3,9 +3,9 @@ import 'dart:math' show pi;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_view/children_heights.dart';
+import 'package:flutter_staggered_view/my_scroll_controller.dart';
 import 'package:flutter_staggered_view/my_sliver_grid_delegate.dart';
-import 'package:flutter_staggered_view/rect_getter.dart';
+import 'package:rect_getter/rect_getter.dart';
 
 void main() {
   runApp(new MyApp());
@@ -38,6 +38,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List<int> data = new List<int>.generate(100, (index) => index);
   int rowCount = 3;
 
+  var key = new GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -49,9 +51,9 @@ class _MyHomePageState extends State<MyHomePage> {
       });
       return new Container();
     }
-    var controller = new ScrollController();
-    var delegate = new MySliverGridDelegate(
+    var controller = new MyScrollController(key,
         rowCount: rowCount, screenWidth: size.width, viewportHeight: size.height, itemCount: data.length);
+    var delegate = new MySliverGridDelegate(key: controller.key);
     return new Scaffold(
 /*      appBar: new AppBar(
         title: new Text(widget.title),
@@ -65,36 +67,52 @@ class _MyHomePageState extends State<MyHomePage> {
           print('build : $index');
 
           var rectGetter = new RectGetter.defaultKey(
-            child: new SizedBox(
-              width: (pi * index * 10000) % 100 + 100.0,
-              height: (pi * index * 1000000) % 100 + 150.0,
-              child: new Container(
-                color: Colors.primaries[index % Colors.primaries.length],
-                child: new Center(
-                  child: new Text('$index'),
-                ),
-              ),
+            child: SizeChangedLayoutNotifier(
+              child: index == 0
+                  ? new Image.network('http://debuggerx.com:8888/upload/nazou.png')
+                  : new Image.network(
+                      'https://picsum.photos/${(pi * index * 10000) % 100 + 100.0}/${(pi * index * 1000000) % 100 + 150.0}/?image=$index'),
+
+              /*new SizedBox(
+                      width: (pi * index * 10000) % 100 + 100.0,
+                      height: (pi * index * 1000000) % 100 + 150.0,
+                      child: new Container(
+                        color: Colors.primaries[index % Colors.primaries.length],
+                        child: new Center(
+                          child: new Text('$index'),
+                        ),
+                      ),
+                    ),*/
             ),
           );
 
+          var cell = new NotificationListener<SizeChangedLayoutNotification>(
+              onNotification: (notification) {
+                new Future.delayed(Duration.zero, () {
+                  setState(() {
+                    var rect = rectGetter.getRect();
+                    rect = rect == null ? Size.zero : rect;
+                    controller.chs.updateChild(index, Size(rect.width, rect.height));
+                  });
+                });
+              },
+              child: rectGetter);
+
           new Future.delayed(Duration.zero, () {
             var rect = rectGetter.getRect();
-            new ChildrenHeights().addChild(index: index, width: rect.width, height: rect.height);
-//            controller.animateTo(controller.offset + (index.isOdd ? 1.0 : -1.0),
-//                duration: const Duration(microseconds: 1), curve: Curves.linear);
-
-            if (ChildrenHeights().childCount != data.length) setState(() {});
+            rect = rect == null ? Size.zero : rect;
+            controller.chs.addChild(index: index, width: rect.width, height: rect.height);
+            if (controller.chs.childCount != data.length) setState(() {});
           });
           return new FittedBox(
             fit: BoxFit.contain,
-            child: rectGetter,
+            child: cell,
           );
         },
       ),
       floatingActionButton: new FloatingActionButton(
         onPressed: () {
-          var ch = new ChildrenHeights();
-          ch.list.forEach((hs) {
+          controller.chs.list.forEach((hs) {
             print('-------------------------------------------');
             hs.forEach((h) {
               print('${h.index}, ${h.top}, ${h.bottom}');
@@ -104,6 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
           controller.jumpTo(0.0);
           setState(() {
             rowCount = rowCount >= 6 ? 2 : rowCount + 1;
+            controller.chs.rebuildList(rowCount, size.width / rowCount);
           });
         },
         tooltip: 'Increment',

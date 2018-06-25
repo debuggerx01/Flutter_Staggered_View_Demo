@@ -1,24 +1,16 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_staggered_view/children_heights.dart';
 
 class MySliverGridDelegate extends SliverGridDelegate {
-  ChildrenHeights childrenHeights;
-  int rowCount;
-  double _itemWidth;
+  GlobalKey key;
 
-  double screenWidth;
-
-  MySliverGridDelegate(
-      {@required this.rowCount, @required this.screenWidth, @required viewportHeight, @required itemCount}) {
-    _itemWidth = screenWidth / rowCount;
-    childrenHeights = new ChildrenHeights(
-        rowCount: rowCount, itemWidth: _itemWidth, viewportHeight: viewportHeight, itemCount: itemCount);
-  }
+  MySliverGridDelegate({@required this.key});
 
   @override
   SliverGridLayout getLayout(SliverConstraints constraints) {
-    return new MySliverGridLayout();
+    return new MySliverGridLayout(key: key);
   }
 
   @override
@@ -29,48 +21,48 @@ class MySliverGridDelegate extends SliverGridDelegate {
 
 @immutable
 class MySliverGridLayout extends SliverGridLayout {
-  final ChildrenHeights ch;
+  final GlobalKey key;
 
-  MySliverGridLayout() : ch = new ChildrenHeights();
+  MySliverGridLayout({@required this.key});
 
   @override
   SliverGridGeometry getGeometryForChildIndex(int index) {
     // TODO: implement getGeometryForChildIndex
 
-    var chs = new ChildrenHeights();
+    var chs = ChildrenHeights(key);
 
     ///该子布局第一次加载时，容器中无信息，此时直接返回全屏渲染以供计算
     if (index > chs.lastIndex)
       return new SliverGridGeometry(
-          crossAxisExtent: ch.itemWidth * ch.list.length,
-          crossAxisOffset: ch.itemWidth * ch.list.length,
-          mainAxisExtent: ch.viewportHeight,
-          scrollOffset: ch.viewportHeight * index);
+          crossAxisExtent: chs.itemWidth * chs.list.length,
+          crossAxisOffset: chs.itemWidth * chs.list.length,
+          mainAxisExtent: chs.viewportHeight,
+          scrollOffset: chs.viewportHeight * index);
 
     ///如果容器中已有信息，取出后生成指定的几何信息
-    var heightWithRowIndex = chs.getHeightByIndex(index);
+    var height = chs.getHeightByIndex(index);
     return new SliverGridGeometry(
-        crossAxisExtent: ch.itemWidth,
-        crossAxisOffset: ch.itemWidth * heightWithRowIndex.rowIndex,
-        mainAxisExtent: heightWithRowIndex.height.mainAxisExtent,
-        scrollOffset: heightWithRowIndex.height.top);
+        crossAxisExtent: chs.itemWidth,
+        crossAxisOffset: chs.itemWidth * height.rowIndex,
+        mainAxisExtent: height.mainAxisExtent,
+        scrollOffset: height.top);
   }
 
   @override
   int getMaxChildIndexForScrollOffset(double scrollOffset) {
     // TODO: implement getMaxChildIndexForScrollOffset
-    return ch.getMaxIndexForScrollOffset(scrollOffset);
+    return ChildrenHeights(key).getMaxIndexForScrollOffset(scrollOffset);
   }
 
   @override
   int getMinChildIndexForScrollOffset(double scrollOffset) {
     // TODO: implement getMinChildIndexForScrollOffset
-    return ch.getMinIndexForScrollOffset(scrollOffset);
+    return ChildrenHeights(key).getMinIndexForScrollOffset(scrollOffset);
   }
 
   @override
   double computeMaxScrollOffset(int childCount) {
     // TODO: implement computeMaxScrollOffset
-    return ch.computeMaxScrollOffset(childCount);
+    return ChildrenHeights(key).computeMaxScrollOffset(childCount);
   }
 }

@@ -1,34 +1,29 @@
 import 'dart:math' show max;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 typedef int FindHeightTarget(Height height);
 
+@immutable
 class Height {
   final double top;
   final double bottom;
   final int index;
+  final rowIndex;
 
-  const Height(this.index, this.top, this.bottom);
+  const Height(this.index, this.rowIndex, this.top, this.bottom);
 
   get mainAxisExtent => bottom - top;
 
   @override
-  String toString() => 'Height : [index : $index , top : $top , bottom : $bottom]';
+  String toString() => 'Height : [index : $index , rowIndex : $rowIndex , top : $top , bottom : $bottom]';
 }
 
-@immutable
-class HeightWithRowIndex {
-  final int rowIndex;
-  final Height height;
-
-  HeightWithRowIndex(this.rowIndex, this.height);
-}
-
-/// 单例容器，存放所有子布局的上下偏移于对应列标的列表中
+/// 单例容器，用Map存放所有子布局的上下偏移于对应列标的列表中
 class ChildrenHeights {
-  static final ChildrenHeights _singleton = new ChildrenHeights._internal();
-
+  /// 利用GlobalKey索引指定的容器实例
+  static final Map<GlobalKey, ChildrenHeights> _singletons = {};
   double viewportHeight;
 
   int itemCount;
@@ -42,46 +37,27 @@ class ChildrenHeights {
   /// 子布局信息容器
   List<List<Height>> list;
 
-  /// 第一次初始化必须传所有值，后面使用时必须不传值
-  factory ChildrenHeights({int rowCount = 0, double itemWidth, double viewportHeight, int itemCount}) {
-    /// 容器list为null时必为第一次初始化，设置各个初始化值
-    if (_singleton.list == null) {
-      _singleton.list = new List.generate(rowCount, (index) => new List<Height>());
-      ;
-      _singleton.itemWidth = itemWidth;
-      _singleton.viewportHeight = viewportHeight;
-      _singleton.itemCount = itemCount;
-      return _singleton;
-    }
+  /// 原始子布局信息记录容器
+  List<Height> _metaList = [];
 
-    if (rowCount != 0) {
-      /// 有值变化，根据情况修改调整容器内的信息
-      if (rowCount != _singleton.list.length) {
-        _singleton.rebuildList(rowCount, itemWidth);
-      }
+  /// 初始化时传入包括GlobalKey在内的所有信息，由此创建实例并返回
+  /// 后续功能中只传GlobalKey返回Map中的指定实例
+  factory ChildrenHeights(GlobalKey key, {int rowCount = 0, double itemWidth, double viewportHeight, int itemCount}) {
+    if (!_singletons.containsKey(key)) {
+      _singletons[key] = ChildrenHeights._internal();
+      _singletons[key].list = new List.generate(rowCount, (index) => new List<Height>());
+      _singletons[key].itemWidth = itemWidth;
+      _singletons[key].viewportHeight = viewportHeight;
+      _singletons[key].itemCount = itemCount;
     }
-
-    return _singleton;
+    return _singletons[key];
   }
 
   /// 获取容器中最后一个布局信息的index
-  int get lastIndex {
-    int index = -1;
-    for (var row in list) {
-      var last = row.isEmpty ? -1 : row.last.index;
-      index = max(index, last);
-    }
-    return index;
-  }
+  int get lastIndex => _metaList.isEmpty ? -1 : _metaList.last.index;
 
   /// 获取容器中子布局信息的总数
-  int get childCount {
-    int count = 0;
-    for (var row in list) {
-      count += row.length;
-    }
-    return count;
-  }
+  int get childCount => _metaList.isEmpty ? 0 : _metaList.length;
 
   int getMinIndexForScrollOffset(double scrollOffset) {
     return 0;
@@ -93,8 +69,10 @@ class ChildrenHeights {
   }
 
   /// 向容器中新增子布局，传入index以及对应的真实宽高
+  /// 传入index必须是从0开始递增，出错将影响计算
   void addChild({int index, double width, double height}) {
     double radio = height / width;
+    radio = radio.isNaN ? 0.0 : radio;
     double showHeight = itemWidth * radio;
 
     double minBottom = list[0].isEmpty ? 0.0 : list[0].last.bottom;
@@ -116,7 +94,9 @@ class ChildrenHeights {
         minRowIndex = rowIndex;
       }
     }
-    list[minRowIndex].add(new Height(index, minBottom, minBottom + showHeight));
+    var h = new Height(index, minRowIndex, minBottom, minBottom + showHeight);
+    list[minRowIndex].add(h);
+    _metaList.add(h);
   }
 
   ///可滑动的最大距离
@@ -132,58 +112,45 @@ class ChildrenHeights {
     return maxScrollOffset;
   }
 
-  HeightWithRowIndex getHeightByIndex(int index) {
-    for (int rowIndex = 0; rowIndex < list.length; rowIndex++) {
-      var res = _getHeightByIndexInRow(rowIndex, index);
-      if (res != null) {
-        return new HeightWithRowIndex(rowIndex, res);
-      }
-    }
+  Height getHeightByIndex(int index) {
+    if (_metaList[index] != null) return _metaList[index];
     throw new Exception('can not getHeightByIndex : $index');
-  }
-
-  dynamic _getHeightByIndexInRow(int rowIndex, int index) {
-    var row = list[rowIndex];
-    if (row == null) return null;
-    int left = 0;
-    int right = row.length - 1;
-
-    while (left <= right) {
-      int mid = (left + right) ~/ 2;
-      if (row[mid].index == index) {
-        return row[mid];
-      } else if (row[mid].index < index) {
-        left = mid + 1;
-      } else {
-        right = mid - 1;
-      }
-    }
-    return null;
   }
 
   /// 列数变化
   void rebuildList(int rowCount, double newItemWidth) {
+    /// 临时保存列数变化前的子布局宽度后赋新值
     double oldItemWidth = itemWidth;
     itemWidth = newItemWidth;
-    List<List<Height>> oldList = list;
-    int last = lastIndex;
+
+    /// 临时提取所有子布局原始信息后清空两个容器
+    List<Height> oldMetaList = _metaList;
     list = new List<List<Height>>.generate(rowCount, (index) => new List<Height>());
+    _metaList = [];
 
-    /// 每一列的处理指针集合
-    List<int> pointers = new List.generate(oldList.length, (index) => 0);
+    /// 循环执行添加操作，完成新列数下的布局信息计算存储
+    oldMetaList.forEach((ch) {
+      addChild(index: ch.index, width: oldItemWidth, height: ch.mainAxisExtent);
+    });
+  }
 
-    for (int index = 0; index <= last; index++) {
-      for (int rowIndex = 0; rowIndex < oldList.length; rowIndex++) {
-        if (oldList[rowIndex].length <= pointers[rowIndex]) {
-          continue;
-        }
-        Height tempHeight = oldList[rowIndex][pointers[rowIndex]];
-        if (tempHeight.index == index) {
-          pointers[rowIndex] += 1;
-          addChild(index: index, width: oldItemWidth, height: tempHeight.mainAxisExtent);
-          break;
-        }
-      }
-    }
+  /// 修改指定index子布局的信息
+  void updateChild(int index, Size newSize) {
+    /// 提取出指定index之后的所有子布局信息
+    var leftList = _metaList.where((ele) => ele.index > index).toList();
+
+    /// 从两个容器中移除包括指定index及其之后的子布局信息
+    _metaList.removeWhere((ele) => ele.index >= index);
+    list.forEach((row) {
+      row.removeWhere((ele) => ele.index >= index);
+    });
+
+    /// 先添加指定的子布局
+    addChild(index: index, width: newSize.width, height: newSize.height);
+
+    /// 循环重新添加前面保存下来已经移除的子布局信息们
+    leftList.forEach((height) {
+      addChild(index: height.index, width: itemWidth, height: height.mainAxisExtent);
+    });
   }
 }

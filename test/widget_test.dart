@@ -8,11 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_view/children_heights.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_staggered_view/main.dart';
-
 void main() {
   test('get lastIndex from ChildrenHeights', () {
-    var chs = new ChildrenHeights(rowCount: 3, itemWidth: 100.0);
+    var key = GlobalKey();
+    var chs = new ChildrenHeights(key, rowCount: 3, itemWidth: 100.0);
 
     ///没有添加任何元素的时候最大index为-1
     expect(chs.lastIndex, -1);
@@ -39,17 +38,22 @@ void main() {
     chs.addChild(index: 5, width: 100.0, height: 50.0);
 
     ///测试通过index获取元素
-    expect(chs.getHeightByIndex(3).height.bottom, 120);
+    expect(chs.getHeightByIndex(3).bottom, 120);
     expect(chs.getHeightByIndex(3).rowIndex, 0);
-    expect(chs.getHeightByIndex(4).height.top, 70);
+    expect(chs.getHeightByIndex(4).top, 70);
     expect(chs.getHeightByIndex(4).rowIndex, 2);
 
     printHeights(chs);
 
     chs.rebuildList(2, 150.0);
     print('#################################');
-
     printHeights(chs);
+
+    chs.updateChild(4, Size(100.0, 300.0));
+    print('#################################');
+    printHeights(chs);
+
+    expect(chs.getHeightByIndex(5).rowIndex, 1);
   });
 
 /*  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
