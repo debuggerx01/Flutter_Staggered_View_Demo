@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_view/children_heights.dart';
 
-class MyScrollController extends ScrollController {
+class ScrollControllerForStaggeredView extends ScrollController {
   ChildrenHeights chs;
   GlobalKey key;
 
-  MyScrollController(
+  ScrollControllerForStaggeredView(
     this.key, {
     double initialScrollOffset: 0.0,
     keepScrollOffset: true,
@@ -22,7 +22,4 @@ class MyScrollController extends ScrollController {
             viewportHeight: viewportHeight,
             itemCount: itemCount),
         super(initialScrollOffset: initialScrollOffset, keepScrollOffset: keepScrollOffset, debugLabel: debugLabel);
-
-  @override
-  void dispose() {}
 }

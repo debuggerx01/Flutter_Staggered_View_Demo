@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_staggered_view/children_heights.dart';
 
-class MySliverGridDelegate extends SliverGridDelegate {
+class SliverGridDelegateForStaggeredView extends SliverGridDelegate {
+  /// 利用key可以从ChildrenHeights单例中获取对应的信息容器
   GlobalKey key;
 
-  MySliverGridDelegate({@required this.key});
+  SliverGridDelegateForStaggeredView({@required this.key});
 
   @override
   SliverGridLayout getLayout(SliverConstraints constraints) {
-    return new MySliverGridLayout(key: key);
+    return new SliverGridLayoutForStaggeredView(key: key);
   }
 
   @override
@@ -20,27 +21,25 @@ class MySliverGridDelegate extends SliverGridDelegate {
 }
 
 @immutable
-class MySliverGridLayout extends SliverGridLayout {
+class SliverGridLayoutForStaggeredView extends SliverGridLayout {
   final GlobalKey key;
 
-  MySliverGridLayout({@required this.key});
+  SliverGridLayoutForStaggeredView({@required this.key});
 
   @override
   SliverGridGeometry getGeometryForChildIndex(int index) {
-    // TODO: implement getGeometryForChildIndex
-
     var chs = ChildrenHeights(key);
+    var height = chs.getHeightByIndex(index);
 
-    ///该子布局第一次加载时，容器中无信息，此时直接返回全屏渲染以供计算
-    if (index > chs.lastIndex)
+    /// 该子布局第一次加载时，其高度为0.0，此时直接返回全屏渲染以供计算
+    if (height.mainAxisExtent == 0.0)
       return new SliverGridGeometry(
           crossAxisExtent: chs.itemWidth * chs.list.length,
           crossAxisOffset: chs.itemWidth * chs.list.length,
           mainAxisExtent: chs.viewportHeight,
-          scrollOffset: chs.viewportHeight * index);
+          scrollOffset: 0.0);
 
-    ///如果容器中已有信息，取出后生成指定的几何信息
-    var height = chs.getHeightByIndex(index);
+    ///如果容器中子布局信息已经为有效值，取出后生成指定的几何信息
     return new SliverGridGeometry(
         crossAxisExtent: chs.itemWidth,
         crossAxisOffset: chs.itemWidth * height.rowIndex,
@@ -50,19 +49,16 @@ class MySliverGridLayout extends SliverGridLayout {
 
   @override
   int getMaxChildIndexForScrollOffset(double scrollOffset) {
-    // TODO: implement getMaxChildIndexForScrollOffset
     return ChildrenHeights(key).getMaxIndexForScrollOffset(scrollOffset);
   }
 
   @override
   int getMinChildIndexForScrollOffset(double scrollOffset) {
-    // TODO: implement getMinChildIndexForScrollOffset
     return ChildrenHeights(key).getMinIndexForScrollOffset(scrollOffset);
   }
 
   @override
   double computeMaxScrollOffset(int childCount) {
-    // TODO: implement computeMaxScrollOffset
     return ChildrenHeights(key).computeMaxScrollOffset(childCount);
   }
 }

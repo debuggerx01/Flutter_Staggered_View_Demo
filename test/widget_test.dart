@@ -13,29 +13,23 @@ void main() {
     var key = GlobalKey();
     var chs = new ChildrenHeights(key, rowCount: 3, itemWidth: 100.0);
 
-    ///没有添加任何元素的时候最大index为-1
-    expect(chs.lastIndex, -1);
+    /// 初始化容器长度为10个单位
+    chs.fillList(10);
 
-    ///添加一个元素，最大index为0
-    chs.addChild(index: 0, width: 100.0, height: 50.0);
-    expect(chs.lastIndex, 0);
+    /// 更新第一个元素
+    chs.updateChild(0, Size(100.0, 50.0));
 
-    ///添加一个同index元素，再添加一个小index元素，最大index仍然为0
-    chs.addChild(index: 0, width: 100.0, height: 50.0);
-    chs.addChild(index: -1, width: 100.0, height: 50.0);
-    expect(chs.lastIndex, 0);
-
-    ///再添加一个元素，此时应该添加在第二竖排
-    chs.addChild(index: 1, width: 100.0, height: 100.0);
+    /// 更新第二个元素，此时应该添加在第二竖排
+    chs.updateChild(1, Size(100.0, 100.0));
     expect(chs.list[1].length, 1);
-    chs.addChild(index: 2, width: 100.0, height: 70.0);
+    chs.updateChild(2, 100.0, 70.0);
 
     ///增加第四个元素，此时应该追加到第一竖排
-    chs.addChild(index: 3, width: 100.0, height: 70.0);
+    chs.updateChild(3, 100.0, 70.0);
     expect(chs.list[0].length, 2);
 
-    chs.addChild(index: 4, width: 100.0, height: 30.0);
-    chs.addChild(index: 5, width: 100.0, height: 50.0);
+    chs.updateChild(4, 100.0, 30.0);
+    chs.updateChild(5, 100.0, 50.0);
 
     ///测试通过index获取元素
     expect(chs.getHeightByIndex(3).bottom, 120);
@@ -55,23 +49,6 @@ void main() {
 
     expect(chs.getHeightByIndex(5).rowIndex, 1);
   });
-
-/*  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(new MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });*/
 }
 
 void printHeights(chs) {
