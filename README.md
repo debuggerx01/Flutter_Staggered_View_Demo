@@ -1,6 +1,6 @@
 # flutter_staggered_view
 
-A new Flutter application.
+![demo](https://github.com/debuggerx01/Flutter_Staggered_View_Demo/blob/master/staggered_demo.gif?raw=true)
 
 ## Getting Started
 
